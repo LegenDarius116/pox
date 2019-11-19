@@ -8,12 +8,16 @@ parser.add_argument("-n", type=int, help="number of times to curl server")
 parser.add_argument("-d", type=int, help="delay in milliseconds between curling again")
 args = parser.parse_args()
 
+
+
 server = args.s
 num_of_times = args.n
 delay = args.d
 
+f = open("stats.log", "w")
+
 server_addr = "http://{}".format(args.s)
-#stats = []
+
 for i in range(num_of_times):
     buffer = StringIO()
     c = pycurl.Curl()
@@ -24,7 +28,7 @@ for i in range(num_of_times):
 
 
     body = buffer.getvalue()
-    #print(body)
+
     m = {}
     m['total-time'] = c.getinfo(pycurl.TOTAL_TIME)
     m['connect-time'] = c.getinfo(pycurl.CONNECT_TIME)
@@ -33,8 +37,9 @@ for i in range(num_of_times):
     m['starttransfer-time'] = c.getinfo(pycurl.STARTTRANSFER_TIME)
 
     c.close()
-    print("curl {}".format(i))
-    print(m)
-    #stats.append(m)
-    time.sleep(float(delay)/1000000)
-#print(stats)
+
+    f.write("curl {}\n".format(i))
+    f.write("{}\n".format(m))
+    time.sleep(float(delay)/1000)
+
+f.close()
