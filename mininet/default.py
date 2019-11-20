@@ -28,8 +28,8 @@ def start():
 
     size = args.n
     if not args.s:
-        print("-s not provided. Defaulting to n-1 ({})".format(size-1))
         servs = size - 1
+        print("-s not provided. Defaulting to n-1 ({})".format(servs))
     else:
         servs = args.s
 
@@ -52,7 +52,7 @@ def start():
 
     command = "python -m SimpleHTTPServer 80 &"
 
-    print("Spinning up Default Load Balancing Test Topology with {} total nodes and {} servers.".format(size, size-1))
+    print("Spinning up Default Load Balancing Test Topology with {} total nodes and {} servers.".format(size, servs))
 
     for i in range(servs):
         h = mininet.hosts[i]
