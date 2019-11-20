@@ -12,7 +12,8 @@ class lblc_base(iplb_base):
         super(lblc_base, self).__init__(server, first_packet, client_port)
 
         # create dictionary to track how many active connections each server has
-        self.server_load = {k: 0 for k in self.servers}
+        # NOTE: These will now be populated via _handle_packetIn (and potentially depopulated by _do_probe)
+        self.server_load = {}
 
         self.log.debug('server_load initial state: {}'.format(self.server_load))
 
