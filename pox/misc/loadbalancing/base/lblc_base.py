@@ -1,5 +1,4 @@
 from pox.misc.loadbalancing.base.iplb_base import *
-from threading import Lock
 import re
 import os
 
@@ -13,7 +12,8 @@ class lblc_base(iplb_base):
         super(lblc_base, self).__init__(server, first_packet, client_port)
 
         # create dictionary to track how many active connections each server has
-        self.server_load = {k: 0 for k in self.servers}
+        # NOTE: These will now be populated via _handle_packetIn (and potentially depopulated by _do_probe)
+        self.server_load = {}
 
         self.log.debug('server_load initial state: {}'.format(self.server_load))
 
@@ -66,6 +66,12 @@ class lblc_base(iplb_base):
                             # Ooh, new server.
                             self.live_servers[arpp.protosrc] = arpp.hwsrc, inport
                             self.log.info("Server %s up", arpp.protosrc)
+
+                            # Add this server to the load table
+                            new_server = IPAddr(arpp.protosrc)
+                            self.server_load[new_server] = 0
+                            self.log.info("New server {} added to load table!".format(new_server))
+                            self.log.debug("Current load counter: {}".format(self.server_load))
                 return
 
                 # Not TCP and not ARP.  Don't know what to do with this.  Drop it.
@@ -173,3 +179,30 @@ class lblc_base(iplb_base):
                                   match=match)
             self.con.send(msg)
 
+    def _do_expire(self):
+        """
+        Expire probes and "memorized" flows. Each of these should only have a limited lifetime.
+        Extended to also remove the server's load counter, if it has any.
+        """
+        t = time.time()
+
+        # Expire probes
+        for ip,expire_at in self.outstanding_probes.items():
+            if t > expire_at:
+                self.outstanding_probes.pop(ip, None)
+            if ip in self.live_servers:
+                self.log.warn("Server %s down", ip)
+                del self.live_servers[ip]
+
+                # remove server entry from server load counter
+                expired_server = IPAddr(ip)
+                self.server_load.pop(expired_server, None)
+                self.log.warn("Load counter of Server {} removed".format(expired_server))
+                self.log.debug("Current load counter: {}".format(self.server_load))
+
+        # Expire old flows
+        c = len(self.memory)
+        self.memory = {k:v for k,v in self.memory.items()
+                       if not v.is_expired}
+        if len(self.memory) != c:
+            self.log.debug("Expired %i flows", c-len(self.memory))
