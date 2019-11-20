@@ -6,8 +6,8 @@ def main():
     """Runs pox controller which points to h1,h2, and h3."""
     ip = '10.0.1.1'
     parser = ArgumentParser(description='Command line tool for quickly spinning up POX Controller')
-    parser.add_argument("-n", type=int, help="number of servers")
-    parser.add_argument("-lb", type=str, help="name of load balancing module")
+    parser.add_argument("-n", type=int, help="number of servers", required=True)
+    parser.add_argument("-lb", type=str, help="name of load balancing module", required=True)
     args = parser.parse_args()
 
     servers = ''
