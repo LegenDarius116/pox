@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pox.topology import SingleSwitchTopo
+
 def launch ():
   from pox.topology import topology
   from pox.core import core
