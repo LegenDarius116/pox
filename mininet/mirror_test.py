@@ -55,7 +55,7 @@ def start():
         def run(h):
             h.cmd("sudo python /pox/misc/loadbalancing/utils/get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
 
-        processes = [Process(target=run, args(client,)) for client in clients]
+        processes = [Process(target=run, args=(client,)) for client in clients]
 
         print("Running get_stats in parallel across nodes: {}".format(clients))
 
