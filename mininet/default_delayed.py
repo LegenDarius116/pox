@@ -2,7 +2,18 @@ from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.node import RemoteController
 from argparse import ArgumentParser
-from pox.topology import SingleSwitchTopo
+from mininet.topo import Topo
+
+
+class SingleSwitchTopo(Topo):
+    """Single switch connected to n hosts."""
+    def build(self, n=2):
+        switch = self.addSwitch('s1')
+
+        # Python's range(N) generates 0..N-1
+        for h in range(n):
+            host = self.addHost('h%s' % (h + 1))
+            self.addLink(host, switch)
 
 
 def start(command):
@@ -40,6 +51,8 @@ def start(command):
     mininet.start()
 
     print("Spinning up Default Load Balancing Test Topology with {} total nodes and {} servers.".format(size, servs))
+    print("Warning: this will run a script on the root directory of this pox repo.")
+    print("Do not cd the server nodes into any other directory")
 
     for i in range(servs):
         h = mininet.hosts[i]
@@ -51,3 +64,6 @@ def start(command):
     finally:
         mininet.stop()
 
+
+if __name__ == "__main__":
+    start("python run_delayed_http.py")
