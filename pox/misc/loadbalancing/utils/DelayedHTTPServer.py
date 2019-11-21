@@ -2,7 +2,7 @@ import SimpleHTTPServer
 import time
 
 
-class DelayedHTTPServer(SimpleHTTPServer):
+class DelayedHTTPServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
     """Simple extension of SimpleHTTPServer that adds artificial delay"""
 
     def do_GET(self):
