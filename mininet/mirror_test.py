@@ -25,7 +25,8 @@ def start():
                                         'POX Controller at 10.0.1.1')
     parser.add_argument("-p", type=int, help="number of packets for each node to send (total sent "
                                              "will be this value times the number of clients (p*s))", required=True)
-    parser.add_argument("-s", type=int, help"Number of servers. Total number of hosts will be double this.")
+    parser.add_argument("-s", type=int, help="Number of servers. Total number of hosts will be double this.",
+                        required=True)
     args = parser.parse_args()
 
     num_packets = args.p
