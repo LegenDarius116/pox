@@ -66,4 +66,4 @@ def start(command):
 
 
 if __name__ == "__main__":
-    start("python run_delayed_http.py")
+    start("sudo python run_delayed_http.py &")
