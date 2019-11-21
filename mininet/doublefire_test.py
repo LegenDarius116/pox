@@ -1,7 +1,9 @@
+from argparse import ArgumentParser
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.node import RemoteController
+from multiprocessing import Process
 
 
 class SingleSwitchTopo(Topo):
@@ -23,6 +25,13 @@ def start():
     servs = 3
     topo = SingleSwitchTopo(n=size)
 
+    parser = ArgumentParser(description='Test Topology that Runs two Traffic Generators in Parallel to hit the '
+                                        'POX Controller at 10.0.1.1')
+    parser.add_argument("-p", type=int, help="number of packets for each node to send (total sent "
+                                             "will be double)", required=True)
+    args = parser.parse_args()
+    num_packets = args.p
+
     controller = RemoteController(name='custom_pox', ip='0.0.0.0', port=6633)
     mininet = Mininet(topo=topo, controller=controller)
     mininet.start()
@@ -40,15 +49,26 @@ def start():
         print("Warning! Make sure POX and three tshark instances (one for each server) are running!")
         raw_input("Press any key to continue ")
 
-        print("Firing 100 requests each from h4 and h5...")
+        print("Firing {} requests each from h4 and h5...".format(num_packets))
         h4 = mininet.hosts[3]
         h5 = mininet.hosts[4]
 
         h4.cmd("cd pox/misc/loadbalancing/utils")
         h5.cmd("cd pox/misc/loadbalancing/utils")
 
-        h4.cmd("sudo python get_stats.py -s 10.0.1.1 -n 100 -d 0")
-        h5.cmd("sudo python get_stats.py -s 10.0.1.1 -n 100 -d 0")
+        def run(h):
+            h.cmd("sudo python get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
+
+        tg1 = Process(target=run, args=(h4,))
+        tg2 = Process(target=run, args=(h5,))
+
+        print("Running get_stats in parallel...")
+
+        tg1.start()
+        tg2.start()
+
+        tg1.join()
+        tg2.join()
 
         CLI(mininet)
     finally:
