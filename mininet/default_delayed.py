@@ -2,7 +2,7 @@ from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.node import RemoteController
 from argparse import ArgumentParser
-from pox.topology.SingleSwitchTopo import SingleSwitchTopo
+from pox.topology import SingleSwitchTopo
 
 
 def start(command):
