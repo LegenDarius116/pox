@@ -20,10 +20,10 @@ class SingleSwitchTopo(Topo):
 
 def start():
     """
-    Builds default mininet topology with 2 clients and 3 servers. Tests the scenario where we are underloading the
-    load balancing server (i.e. there are less packets coming in than total server power)
+    Builds default mininet topology with 4 clients and 3 servers. Tests the scenario where we are overloading the load
+    balancing server
     """
-    size = 5
+    size = 7
     servs = 3
     topo = SingleSwitchTopo(n=size)
 
@@ -54,6 +54,8 @@ def start():
         print("Firing {} requests each from h4 and h5...".format(num_packets))
         h4 = mininet.hosts[3]
         h5 = mininet.hosts[4]
+        h6 = mininet.hosts[5]
+        h7 = mininet.hosts[6]
 
         h4.cmd("cd pox/misc/loadbalancing/utils")
         h5.cmd("cd pox/misc/loadbalancing/utils")
@@ -63,14 +65,20 @@ def start():
 
         tg1 = Process(target=run, args=(h4,))
         tg2 = Process(target=run, args=(h5,))
+        tg3 = Process(target=run, args=(h6,))
+        tg4 = Process(target=run, args=(h7,))
 
         print("Running get_stats in parallel...")
 
         tg1.start()
         tg2.start()
+        tg3.start()
+        tg4.start()
 
         tg1.join()
         tg2.join()
+        tg3.join()
+        tg4.join()
 
         time.sleep(2)
     finally:
