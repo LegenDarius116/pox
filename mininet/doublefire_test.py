@@ -4,6 +4,7 @@ from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.node import RemoteController
 from multiprocessing import Process
+import time
 
 
 class SingleSwitchTopo(Topo):
@@ -69,6 +70,8 @@ def start():
 
         tg1.join()
         tg2.join()
+
+        time.sleep(2)
     finally:
         mininet.stop()
 

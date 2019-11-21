@@ -4,6 +4,7 @@ from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.node import RemoteController
 from multiprocessing import Process
+import time
 
 
 class SingleSwitchTopo(Topo):
@@ -53,7 +54,7 @@ def start():
         clients = [mininet.hosts[servs+i] for i in range(servs)]
 
         def run(h):
-            h.cmd("sudo python /pox/misc/loadbalancing/utils/get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
+            h.cmd("sudo python pox/misc/loadbalancing/utils/get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
 
         processes = [Process(target=run, args=(client,)) for client in clients]
 
@@ -64,6 +65,8 @@ def start():
 
         for process in processes:
             process.join()
+
+        time.sleep(2)
     finally:
         mininet.stop()
 
