@@ -19,56 +19,50 @@ class SingleSwitchTopo(Topo):
 
 def start():
     """
-    Builds default mininet topology with 5 nodes and 3 servers. Client to server ratio is 2:3
+    Builds default mininet topology with n servers and 2n nodes.
     """
-    size = 5
-    servs = 3
-    topo = SingleSwitchTopo(n=size)
-
     parser = ArgumentParser(description='Test Topology that Runs two Traffic Generators in Parallel to hit the '
                                         'POX Controller at 10.0.1.1')
     parser.add_argument("-p", type=int, help="number of packets for each node to send (total sent "
-                                             "will be double)", required=True)
+                                             "will be this value times the number of clients (p*s))", required=True)
+    parser.add_argument("-s", type=int, help"Number of servers. Total number of hosts will be double this.")
     args = parser.parse_args()
+
     num_packets = args.p
+    size = 2*args.s
+    servs = args.s
+    topo = SingleSwitchTopo(n=size)
 
     controller = RemoteController(name='custom_pox', ip='0.0.0.0', port=6633)
     mininet = Mininet(topo=topo, controller=controller)
     mininet.start()
 
-    command = "python -m SimpleHTTPServer 80 &"
-
     print("Spinning up Default Load Balancing Test Topology with {} total nodes and {} servers.".format(size, servs))
 
     for i in range(servs):
         h = mininet.hosts[i]
-        h.cmd(command)
+        h.cmd("python -m SimpleHTTPServer 80 &")
         print("{} now running SimpleHTTPServer".format(h))
 
     try:
         print("Warning! Make sure POX and three tshark instances (one for each server) are running!")
         raw_input("Press any key to continue ")
 
-        print("Firing {} requests each from h4 and h5...".format(num_packets))
-        h4 = mininet.hosts[3]
-        h5 = mininet.hosts[4]
-
-        h4.cmd("cd pox/misc/loadbalancing/utils")
-        h5.cmd("cd pox/misc/loadbalancing/utils")
+        print("Firing {} requests each from remaining hosts...".format(num_packets))
+        clients = [mininet.hosts[servs+i] for i in range(servs)]
 
         def run(h):
-            h.cmd("sudo python get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
+            h.cmd("sudo python /pox/misc/loadbalancing/utils/get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
 
-        tg1 = Process(target=run, args=(h4,))
-        tg2 = Process(target=run, args=(h5,))
+        processes = [Process(target=run, args(client,)) for client in clients]
 
-        print("Running get_stats in parallel...")
+        print("Running get_stats in parallel across nodes: {}".format(clients))
 
-        tg1.start()
-        tg2.start()
+        for process in processes:
+            process.start()
 
-        tg1.join()
-        tg2.join()
+        for process in processes:
+            process.join()
     finally:
         mininet.stop()
 
