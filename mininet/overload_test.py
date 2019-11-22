@@ -52,7 +52,7 @@ def start():
         print("Warning! Make sure POX and three tshark instances (one for each server) are running!")
         raw_input("Press any key to continue ")
 
-        print("Firing {} requests each from h4 and h5...".format(num_packets))
+        print("Firing {} requests each from h4-h7...".format(num_packets))
         h4 = mininet.hosts[3]
         h5 = mininet.hosts[4]
         h6 = mininet.hosts[5]
