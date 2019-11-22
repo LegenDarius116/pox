@@ -1,10 +1,10 @@
-from pox.misc.loadbalancing.lb_weighted_least_connection import WeightedLeastConnection
+from pox.misc.loadbalancing.lb_weighted_least_connection import RandWLC
 
 
-class RandWLC(WeightedLeastConnection):
-    """Variant of WeightedLeastConnection that assigns random weights to servers"""
+class RandWLC(RandWLC):
+    """Variant of RandWLC that assigns random weights to servers"""
     def __init__(self, server, first_packet, client_port):
-        super(WeightedLeastConnection, self).__init__(server, first_packet, client_port)
+        super(RandWLC, self).__init__(server, first_packet, client_port)
         self.server_weight = {k: random.randint(1,5) for k in self.servers}
 
 # Remember which DPID we're operating on (first one to connect)
@@ -12,25 +12,6 @@ _dpid = None
 
 
 def launch(ip, servers, dpid=None):
-    global _dpid
-    if dpid is not None:
-        _dpid = str_to_dpid(dpid)
-
-    servers = servers.replace(",", " ").split()
-    servers = [IPAddr(x) for x in servers]
-    ip = IPAddr(ip)
-
-    # We only want to enable ARP Responder *only* on the load balancer switch,
-    # so we do some disgusting hackery and then boot it up.
-    from proto.arp_responder import ARPResponder
-    old_pi = ARPResponder._handle_PacketIn
-
-    def new_pi(self, event):
-        if event.dpid == _dpid:
-
-
-
-    def launch(ip, servers, dpid=None):
     global _dpid
     if dpid is not None:
         _dpid = str_to_dpid(dpid)
