@@ -30,7 +30,7 @@ def start():
     parser = ArgumentParser(description='Test Topology that Runs two Traffic Generators in Parallel to hit the '
                                         'POX Controller at 10.0.1.1')
     parser.add_argument("-p", type=int, help="number of packets for each node to send (total sent "
-                                             "will be double)", required=True)
+                                             "will be quadruple this)", required=True)
     args = parser.parse_args()
     num_packets = args.p
 
@@ -57,11 +57,8 @@ def start():
         h6 = mininet.hosts[5]
         h7 = mininet.hosts[6]
 
-        h4.cmd("cd pox/misc/loadbalancing/utils")
-        h5.cmd("cd pox/misc/loadbalancing/utils")
-
         def run(h):
-            h.cmd("sudo python get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
+            h.cmd("sudo python pox/misc/loadbalancing/utils/get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
 
         tg1 = Process(target=run, args=(h4,))
         tg2 = Process(target=run, args=(h5,))
