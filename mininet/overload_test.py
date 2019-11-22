@@ -27,8 +27,9 @@ def start():
     servs = 3
     topo = SingleSwitchTopo(n=size)
 
-    parser = ArgumentParser(description='Test Topology that Runs two Traffic Generators in Parallel to hit the '
-                                        'POX Controller at 10.0.1.1')
+    parser = ArgumentParser(description='Builds default mininet topology with 4 clients and 3 servers. '
+                                        'Tests the scenario where we are overloading the load '
+                                        'balancing server at 10.0.1.1.')
     parser.add_argument("-p", type=int, help="number of packets for each node to send (total sent "
                                              "will be quadruple this)", required=True)
     args = parser.parse_args()
