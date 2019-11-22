@@ -1,7 +1,7 @@
-from pox.misc.loadbalancing.lb_weighted_least_connection import RandWLC
+from pox.misc.loadbalancing.lb_weighted_least_connection import WeightedLeastConnection
 
 
-class RandWLC(RandWLC):
+class RandWLC(WeightedLeastConnection):
     """Variant of RandWLC that assigns random weights to servers"""
     def __init__(self, server, first_packet, client_port):
         super(RandWLC, self).__init__(server, first_packet, client_port)
