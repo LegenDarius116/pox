@@ -1,7 +1,7 @@
 from pox.misc.loadbalancing.base.lblc_base import *
 
 
-class iplb(lblc_base):
+class LeastConnection(lblc_base):
 
     def _pick_server(self, key, inport):
         """Applies least connection load balancing algorithm"""
@@ -64,14 +64,14 @@ def launch(ip, servers, dpid=None):
         if _dpid != event.dpid:
             log.warn("Ignoring switch %s", event.connection)
         else:
-            if not core.hasComponent('iplb'):
+            if not core.hasComponent('LeastConnection'):
                 # Need to initialize first...
-                core.registerNew(iplb, event.connection, IPAddr(ip), servers)
+                core.registerNew(LeastConnection, event.connection, IPAddr(ip), servers)
                 log.info("IP Load Balancer Ready.")
             log.info("Load Balancing on %s", event.connection)
 
             # Gross hack
-            core.iplb.con = event.connection
-            event.connection.addListeners(core.iplb)
+            core.LeastConnection.con = event.connection
+            event.connection.addListeners(core.LeastConnection)
 
     core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)

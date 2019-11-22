@@ -1,11 +1,11 @@
 from pox.misc.loadbalancing.base.lblc_base import *
 
 
-class iplb(lblc_base):
+class WeightedLeastConnection(lblc_base):
 
     def __init__(self, server, first_packet, client_port):
         """Extend the __init__ function with extra fields"""
-        super(iplb, self).__init__(server, first_packet, client_port)
+        super(WeightedLeastConnection, self).__init__(server, first_packet, client_port)
 
         # create dictionary to show each server's weight
         # NOTE: Since each node is virtual, they will all have the same weight 1.
@@ -100,14 +100,14 @@ def launch(ip, servers, dpid=None):
         if _dpid != event.dpid:
             log.warn("Ignoring switch %s", event.connection)
         else:
-            if not core.hasComponent('iplb'):
+            if not core.hasComponent('WeightedLeastConnection'):
                 # Need to initialize first...
-                core.registerNew(iplb, event.connection, IPAddr(ip), servers)
+                core.registerNew(WeightedLeastConnection, event.connection, IPAddr(ip), servers)
                 log.info("IP Load Balancer Ready.")
             log.info("Load Balancing on %s", event.connection)
 
             # Gross hack
-            core.iplb.con = event.connection
-            event.connection.addListeners(core.iplb)
+            core.WeightedLeastConnection.con = event.connection
+            event.connection.addListeners(core.WeightedLeastConnection)
 
     core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)
