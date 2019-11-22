@@ -59,7 +59,7 @@ def start():
         h7 = mininet.hosts[6]
 
         def run(h):
-            h.cmd("sudo python pox/misc/loadbalancing/utils/get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
+            h.cmd("sudo python pox/misc/loadbalancing/utils/purefire.py -s 10.0.1.1 -n {}".format(num_packets))
 
         tg1 = Process(target=run, args=(h4,))
         tg2 = Process(target=run, args=(h5,))
