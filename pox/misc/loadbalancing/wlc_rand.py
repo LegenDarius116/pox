@@ -1,4 +1,5 @@
 from pox.misc.loadbalancing.lb_weighted_least_connection import WeightedLeastConnection
+from pox.misc.loadbalancing.base.lblc_base import *
 
 
 class RandWLC(WeightedLeastConnection):
