@@ -1,13 +1,13 @@
-from pox.misc.loadbalancing.base.iplb_base import *
+from pox.misc.loadbalancing.base.RoundRobin_base import *
 from threading import Lock
 import random
 NUM_OF_IPS = 3
 
-class iplb(iplb_base):
+class RoundRobin(RoundRobin_base):
 
     def __init__(self, server, first_packet, client_port):
         """Extend the __init__ function with extra fields"""
-        super(iplb, self).__init__(server, first_packet, client_port)
+        super(RoundRobin, self).__init__(server, first_packet, client_port)
 
         # create dictionary to track how much load each server has
         self.server_load = {k: 0 for k in self.servers}
@@ -225,14 +225,14 @@ def launch(ip, servers, dpid=None):
         if _dpid != event.dpid:
             log.warn("Ignoring switch %s", event.connection)
         else:
-            if not core.hasComponent('iplb'):
+            if not core.hasComponent('RoundRobin'):
                 # Need to initialize first...
-                core.registerNew(iplb, event.connection, IPAddr(ip), servers)
+                core.registerNew(RoundRobin, event.connection, IPAddr(ip), servers)
                 log.info("IP Load Balancer Ready.")
             log.info("Load Balancing on %s", event.connection)
 
             # Gross hack
-            core.iplb.con = event.connection
-            event.connection.addListeners(core.iplb)
+            core.RoundRobin.con = event.connection
+            event.connection.addListeners(core.RoundRobin)
 
     core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)

@@ -1,6 +1,6 @@
 from pox.misc.loadbalancing.base.lblc_base import *
 
-class iplb(lblc_base):
+class RoundRobin(lblc_base):
  
   def _pick_server (self,key,inport):
     log.info('Using Round Robin load balancing algorithm.')
@@ -53,15 +53,15 @@ def launch (ip, servers, dpid = None):
     if _dpid != event.dpid:
       log.warn("Ignoring switch %s", event.connection)
     else:
-      if not core.hasComponent('iplb'):
+      if not core.hasComponent('RoundRobin'):
         # Need to initialize first...
-        core.registerNew(iplb, event.connection, IPAddr(ip), servers)
+        core.registerNew(RoundRobin, event.connection, IPAddr(ip), servers)
         log.info("IP Load Balancer Ready.")
       log.info("Load Balancing on %s", event.connection)
 
       # Gross hack
-      core.iplb.con = event.connection
-      event.connection.addListeners(core.iplb)
+      core.RoundRobin.con = event.connection
+      event.connection.addListeners(core.RoundRobin)
 
 
   core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)
