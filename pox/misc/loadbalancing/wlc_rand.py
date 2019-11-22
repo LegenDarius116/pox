@@ -6,7 +6,8 @@ class RandWLC(WeightedLeastConnection):
     """Variant of RandWLC that assigns random weights to servers"""
     def __init__(self, server, first_packet, client_port):
         super(RandWLC, self).__init__(server, first_packet, client_port)
-        self.server_weight = {k: random.randint(1,5) for k in self.servers}
+        self.server_weight = {k: random.randint(1, 5) for k in self.servers}
+        self.log.debug('Randomized Server Weights: {}'.format(self.server_weight))
 
 # Remember which DPID we're operating on (first one to connect)
 _dpid = None
