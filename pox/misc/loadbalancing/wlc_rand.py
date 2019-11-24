@@ -1,29 +1,13 @@
+from pox.misc.loadbalancing.lb_weighted_least_connection import WeightedLeastConnection
 from pox.misc.loadbalancing.base.lblc_base import *
 
 
-class LeastConnection(lblc_base):
-
-    def _pick_server(self, key, inport):
-        """Applies least connection load balancing algorithm"""
-        self.log.info('Using Least Connection load balancing algorithm.')
-        self.log.debug("Current Load Counter: {}".format(self.server_load))  # debug
-
-        if not bool(self.live_servers):
-            self.log.error('Error: No servers are online!')
-            return
-
-        """
-        Find the server with the least load. If several servers all have the
-        minimum load, pick the first one that was found with that min load.
-        """
-        server = min(self.server_load, key=self.server_load.get)
-
-        # increment that server's load counter
-        # NOTE: When evaluating these algorithms, create a more realistic env
-        self._mutate_server_load(server, 'inc')
-
-        return server
-
+class RandWLC(WeightedLeastConnection):
+    """Variant of RandWLC that assigns random weights to servers"""
+    def __init__(self, server, first_packet, client_port):
+        super(RandWLC, self).__init__(server, first_packet, client_port)
+        self.server_weight = {k: random.randint(1, 5) for k in self.servers}
+        self.log.debug('Randomized Server Weights: {}'.format(self.server_weight))
 
 # Remember which DPID we're operating on (first one to connect)
 _dpid = None
@@ -64,14 +48,14 @@ def launch(ip, servers, dpid=None):
         if _dpid != event.dpid:
             log.warn("Ignoring switch %s", event.connection)
         else:
-            if not core.hasComponent('LeastConnection'):
+            if not core.hasComponent('RandWLC'):
                 # Need to initialize first...
-                core.registerNew(LeastConnection, event.connection, IPAddr(ip), servers)
+                core.registerNew(RandWLC, event.connection, IPAddr(ip), servers)
                 log.info("IP Load Balancer Ready.")
             log.info("Load Balancing on %s", event.connection)
 
             # Gross hack
-            core.LeastConnection.con = event.connection
-            event.connection.addListeners(core.LeastConnection)
+            core.RandWLC.con = event.connection
+            event.connection.addListeners(core.RandWLC)
 
     core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)

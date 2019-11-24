@@ -1,11 +1,11 @@
 from pox.misc.loadbalancing.base.lblc_base import *
 
 
-class iplb(lblc_base):
+class WeightedRoundRobin(lblc_base):
 
     def __init__(self, server, first_packet, client_port):
         """Extend the __init__ function with extra fields"""
-        super(iplb, self).__init__(server, first_packet, client_port)
+        super(WeightedRoundRobin, self).__init__(server, first_packet, client_port)
 
         # create dictionary to show each server's weight
         # NOTE: Since each node is virtual, they will all have the same weight 1.
@@ -14,32 +14,25 @@ class iplb(lblc_base):
         self.log.debug('Server Weights: {}'.format(self.server_weight))
 
     def _pick_server (self,key,inport):
-        """Applies weighted least connection load balancing algorithm"""
         self.log.info('Using Weighted Round Robin load balancing algorithm.')
-        self.log.debug("Current Load Counter: {}".format(self.server_load))  # debug
 
         if not bool(self.live_servers):
             self.log.error('Error: No servers are online!')
             return
 
         """
-        Find the server with the least load. If several servers all have the minimum load,
-        pick the one with the highest weight value (most capable of handling the new connection).
+        pick the serer with the highest weight value.
         """
-        min_servers = self.get_minimally_loaded_servers()
+        servers = self.servers
 
         # slice the self.server_weight dictionary to only have minimally loaded servers
-        weight_sliced = {k: v for k, v in self.server_weight.items() if k in min_servers}
+        weight_sliced = {k: v for k, v in self.server_weight.items() if k in servers}
 
-        # pick the server among weight_sliced with the maximum weight
         server = max(weight_sliced, key=weight_sliced.get)
-        self._mutate_server_load(server, 'inc')
-        return server
 
-    def get_minimally_loaded_servers(self):
-        """Returns a list of servers that all have the minimum load"""
-        min_load = min(self.server_load.values())
-        return [serv for serv in self.server_load.keys() if self.server_load[serv] == min_load]
+        self._mutate_server_load(server, 'inc')
+
+        return server
 
 
 # Remember which DPID we're operating on (first one to connect)
@@ -62,9 +55,9 @@ def launch(ip, servers, dpid=None):
 
     def new_pi(self, event):
         if event.dpid == _dpid:
-        
-        
-        
+
+
+
     def launch(ip, servers, dpid=None):
     global _dpid
     if dpid is not None:
@@ -100,14 +93,14 @@ def launch(ip, servers, dpid=None):
         if _dpid != event.dpid:
             log.warn("Ignoring switch %s", event.connection)
         else:
-            if not core.hasComponent('iplb'):
+            if not core.hasComponent('WeightedRoundRobin'):
                 # Need to initialize first...
-                core.registerNew(iplb, event.connection, IPAddr(ip), servers)
+                core.registerNew(WeightedRoundRobin, event.connection, IPAddr(ip), servers)
                 log.info("IP Load Balancer Ready.")
             log.info("Load Balancing on %s", event.connection)
 
             # Gross hack
-            core.iplb.con = event.connection
-            event.connection.addListeners(core.iplb)
+            core.WeightedRoundRobin.con = event.connection
+            event.connection.addListeners(core.WeightedRoundRobin)
 
     core.openflow.addListenerByName("ConnectionUp", _handle_ConnectionUp)

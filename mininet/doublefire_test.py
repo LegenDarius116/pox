@@ -59,7 +59,7 @@ def start():
         h5.cmd("cd pox/misc/loadbalancing/utils")
 
         def run(h):
-            h.cmd("sudo python get_stats.py -s 10.0.1.1 -n {} -d 0".format(num_packets))
+            h.cmd("sudo python purefire.py -s 10.0.1.1 -n {}".format(num_packets))
 
         tg1 = Process(target=run, args=(h4,))
         tg2 = Process(target=run, args=(h5,))
