@@ -55,25 +55,6 @@ def launch(ip, servers, dpid=None):
 
     def new_pi(self, event):
         if event.dpid == _dpid:
-
-
-
-    def launch(ip, servers, dpid=None):
-    global _dpid
-    if dpid is not None:
-        _dpid = str_to_dpid(dpid)
-
-    servers = servers.replace(",", " ").split()
-    servers = [IPAddr(x) for x in servers]
-    ip = IPAddr(ip)
-
-    # We only want to enable ARP Responder *only* on the load balancer switch,
-    # so we do some disgusting hackery and then boot it up.
-    from proto.arp_responder import ARPResponder
-    old_pi = ARPResponder._handle_PacketIn
-
-    def new_pi(self, event):
-        if event.dpid == _dpid:
             # Yes, the packet-in is on the right switch
             return old_pi(self, event)
 
