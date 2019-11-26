@@ -226,14 +226,6 @@ class iplb_base (object):
               self.log.info("Server %s up", arpp.protosrc)
         return
 
-      ping = packet.find('icmp')
-      pingv6 = packet.find('icmpv6')
-
-      if ping or pingv6:
-        self.log.info("ICMP/ICMPV6 packet detected!")
-        # Anjalika can you build on this? At this current state, the packet will still be dropped
-
-
       # Not TCP and not ARP.  Don't know what to do with this.  Drop it.
       return drop()
 

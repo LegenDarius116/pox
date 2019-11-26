@@ -73,10 +73,6 @@ class lblc_base(iplb_base):
                             self.log.info("New server {} added to load table!".format(new_server))
                             self.log.debug("Current load counter: {}".format(self.server_load))
                 return
-            if ping or pingv6:
-                self.log.info("ICMP/ICMPV6 packet detected!")
-                # Anjalika can you build on this? At this current state, the packet will still be dropped
-
             # Not TCP and not ARP.  Don't know what to do with this.  Drop it.
             return drop()
 
