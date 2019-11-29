@@ -2,6 +2,7 @@ from pox.misc.loadbalancing.base.iplb_base import *
 
 
 class SourceHashing(iplb_base):
+    """This version works with Mininet"""
 
     def _pick_server(self, key, inport, cip):
         """Applies source hashing load balancing algorithm"""
