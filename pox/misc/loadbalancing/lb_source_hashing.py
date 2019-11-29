@@ -110,6 +110,7 @@ class SH_LoadBalancing():
 
         self.server_reply_metrics = {}
         self.client_request_metrics = {}
+        import pdb; pdb.set_trace()
 
     # perform arp request when the system starts.
     # the arp floods all port but the incoming port.
