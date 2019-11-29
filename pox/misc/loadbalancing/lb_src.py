@@ -5,7 +5,7 @@ class SourceHashing(iplb_base):
 
     def _pick_server(self, key, inport, cip):
         """Applies source hashing load balancing algorithm"""
-        self.log.info('Using Source Hashing load balancing algorithm.')
+        self.log.info('Using Source Hashing load balancing algorithm on Client IP: {}.'.format(cip))
 
         if not bool(self.live_servers):
             self.log.error('Error: No servers are online!')
@@ -49,7 +49,7 @@ class SourceHashing(iplb_base):
         # get the load balancing server cnt
         lbservercnt = len(self.live_servers)
         if lbservercnt < 2:
-            log.debug("YOU NEED ALEAST TWO SERVERS UP FOR LOOP BALANCING, CURRENTLY USING ONE SERVER.")
+            self.log.debug("YOU NEED ALEAST TWO SERVERS UP FOR LOOP BALANCING, CURRENTLY USING ONE SERVER.")
             lbservercnt = 2
 
         # get the last 3 digits of your client and servers ip octal computed above
