@@ -280,7 +280,7 @@ class iplb_base (object):
           return drop()
 
         # Pick a server for this flow
-        server = self._pick_server(key, inport, ipp.srcip)
+        server = self._pick_server(key, inport)
         self.log.debug("Directing traffic to %s", server)
         entry = MemoryEntry(server, packet, inport)
         self.memory[entry.key1] = entry
