@@ -4,8 +4,8 @@ from pox.misc.loadbalancing.base.iplb_base import *
 class SourceHashing(iplb_base):
 
     def _pick_server(self, key, inport, cip):
-        """Applies least connection load balancing algorithm"""
-        self.log.info('Using Least Connection load balancing algorithm.')
+        """Applies source hashing load balancing algorithm"""
+        self.log.info('Using Source Hashing load balancing algorithm.')
 
         if not bool(self.live_servers):
             self.log.error('Error: No servers are online!')
@@ -13,10 +13,8 @@ class SourceHashing(iplb_base):
 
         return self.source_hashing(cip)
 
-
-    # perform source hashing alg on the load balancer
     def source_hashing(self, cip):
-        # sepearete the client ip octal and put into a list
+        # separate the client ip octal and put into a list
         clientip = cip.toStr().split(".")
         clientipOctal = [int(i) for i in clientip]
 
@@ -89,6 +87,7 @@ class SourceHashing(iplb_base):
                     lowip = int(iplastOctal[iplastOctalsorted[i]].toStr().split(".")[3])
                     heighip = iplastOctalsorted[i + 1]
                 i = i + 1
+
 
 # Remember which DPID we're operating on (first one to connect)
 _dpid = None
