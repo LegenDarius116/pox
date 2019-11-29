@@ -190,7 +190,7 @@ class iplb_base (object):
     r = max(.25, r) # Cap it at four per second
     return r
 
-  def _pick_server (self, key, inport):
+  def _pick_server (self, *args, **kwargs):
     """
     Pick a server for a (hopefully) new connection
     """
@@ -280,7 +280,7 @@ class iplb_base (object):
           return drop()
 
         # Pick a server for this flow
-        server = self._pick_server(key, inport)
+        server = self._pick_server(key, inport, ipp.srcip)
         self.log.debug("Directing traffic to %s", server)
         entry = MemoryEntry(server, packet, inport)
         self.memory[entry.key1] = entry
