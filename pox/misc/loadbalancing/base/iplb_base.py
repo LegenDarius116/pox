@@ -190,7 +190,7 @@ class iplb_base (object):
     r = max(.25, r) # Cap it at four per second
     return r
 
-  def _pick_server (self, key, inport):
+  def _pick_server (self, *args, **kwargs):
     """
     Pick a server for a (hopefully) new connection
     """
