@@ -1,12 +1,11 @@
 from pox.misc.loadbalancing.base.lblc_base import *
 
 
-class RoundRobin(lblc_base):
- 
-  def _pick_server (self,key,inport):
+def _pick_server (self,key,inport):
     log.info('Using Round Robin load balancing algorithm.')
-    self.last_server_idx = random.randint(0, len(self.servers))
-    
+    if (self.k == 0):
+        self.last_server_idx = 0
+        self.k =+ 1
     if not bool(self.live_servers):
         self.log.error('Error: No servers are online')
         return
@@ -14,7 +13,6 @@ class RoundRobin(lblc_base):
         self.last_server_idx = (self.last_server_idx + 1) % len(self.servers)
         server = self.servers[self.last_server_idx]
         return server
-
 
 _dpid = None
 
