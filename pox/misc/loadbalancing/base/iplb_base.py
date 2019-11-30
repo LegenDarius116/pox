@@ -102,6 +102,7 @@ class iplb_base (object):
     self.con = connection
     self.mac = self.con.eth_addr
     self.live_servers = {} # IP -> MAC,port
+    self.k = 0
 
     try:
       self.log = log.getChild(dpid_to_str(self.con.dpid))
