@@ -102,14 +102,16 @@ class SH_LoadBalancing():
         self.arp_timer = arp_timer
         self.lldp_timer = lldp_timer
 
-        self.server_client_flow_timeout = 60 * 5  # check if the client have performed request in the last z seconds
-        self.flow_idle_time = 15  # flows are removed from  ovs switch if client have not perform requests in the last y sec.
-        self.flow_hard_time = 30  # flows time to live in ovs switch if no client request have been placed in the last x sec. remove flows from ovs switch after x sec have elapse no matter if the client have perform request or not in the last x sec, ie, hard time out
+        self.server_client_flow_timeout = 60 * 30  # check if the client have performed request in the last z seconds
+        self.flow_idle_time = 1  # flows are removed from  ovs switch if client have not perform requests in the last y sec.
+        self.flow_hard_time = 50  # flows time to live in ovs switch if no client request have been placed in the last x sec. remove flows from ovs switch after x sec have elapse no matter if the client have perform request or not in the last x sec, ie, hard time out
 
         # self.live_servers_cnt_eq_initialization_server_cnt=0
 
         self.server_reply_metrics = {}
         self.client_request_metrics = {}
+
+        self.cnt = 0
 
     # perform arp request when the system starts.
     # the arp floods all port but the incoming port.
@@ -119,7 +121,7 @@ class SH_LoadBalancing():
     # on the network since arp floods all ports.
     def arp_request(self, s, protosrc, hwsrc):
 
-        log.debug("performing arp request packet from %s to %s", protosrc.toStr(), s.toStr())
+        # log.debug("performing arp request packet from %s to %s", protosrc.toStr(), s.toStr())
 
         # create arp object
         r = arp()
@@ -160,7 +162,7 @@ class SH_LoadBalancing():
             prtName = prt.name
             prtNum = prt.port_no
             macAdd = prt.hw_addr.toStr()
-            # log.debug("ovs port name: %s - ovs port num: %s: - ovs port address  %s: ", prtName, prtNum, macAdd)
+            log.debug("ovs port name: %s - ovs port num: %s: - ovs port address  %s: ", prtName, prtNum, macAdd)
             if prtName == "vpcontroller":
                 self.controller_prt = prtNum
 
@@ -182,7 +184,7 @@ class SH_LoadBalancing():
 
         Timer(self.arp_timeout + 3, self.build_clientip_index_table, recurring=False)
 
-        Timer(20, self.wrtie_loadbalancer_metric_to_file, recurring=True)
+        Timer(10, self.wrtie_loadbalancer_metric_to_file, recurring=True)
 
         # f = open("/root/Documents/serverMetrics.txt", "w")
         # f.write("**************************************************************************/n")
@@ -202,12 +204,15 @@ class SH_LoadBalancing():
 
             f.close()
 
+        val = 0
         if len(self.client_request_metrics) > 0:
             f = open("/root/Documents/clientMetrics.txt", "w")
             f.write("**************************************************************************\n")
             for sIP in self.client_request_metrics:
                 f.write("ip:" + sIP.toStr() + ":hits:" + str(self.client_request_metrics[sIP]['hits']) + "\n")
+                val = val + self.client_request_metrics[sIP]['hits']
             f.close()
+            log.debug("client requests %s", val)
 
     # maps clientip to lb servers and store them in a table for indexing.
     def build_clientip_index_table(self):
@@ -220,7 +225,7 @@ class SH_LoadBalancing():
                 if self.alg == "sourcehashing":
                     hashedIP = self.source_hashing(clientip)
                 self.predefined_client_key[clientip] = hashedIP
-                log.debug("Building client ip index table. clientip: %s mapped to serverip:%s", clientip, hashedIP)
+                # log.debug("Building client ip index table. clientip: %s mapped to serverip:%s", clientip,hashedIP)
 
     # perform arp request to live servers from the switch
     def arp_request_to_live_server(self):
@@ -229,7 +234,21 @@ class SH_LoadBalancing():
         for s in self.servers:
             self.arp_request(s, self.service_ip, self.con.eth_addr)
 
-    # remove stale flows which have not be reused in some time.
+        self.arp_request(IPAddr("192.168.2.1"), self.service_ip, self.con.eth_addr)
+        self.arp_request(IPAddr("192.168.0.7"), self.service_ip, self.con.eth_addr)
+        # self.arp_request(IPAddr("192.168.3.8"), self.service_ip, self.con.eth_addr)
+        # self.arp_request(IPAddr("192.168.0.16"), self.service_ip, self.con.eth_addr)
+
+        # self.arp_request(IPAddr("192.168.2.16"), self.service_ip, self.con.eth_addr)
+
+        '''
+        for x in range(0, 5):
+            for y in range(1, 256):
+                self.arp_request( IPAddr("192.168."+str(x)+str(y)) , self.service_ip, self.con.eth_addr)
+        '''
+
+        # remove stale flows which have not be reused in some time.
+
     def remove_expired_flows(self):
 
         # check that the live server table contains servers ip
@@ -284,7 +303,7 @@ class SH_LoadBalancing():
 
                         self.sys_flow[self.con.dpid][sIP].destination.remove(dst)
 
-                        log.debug("Expired flows have been removed")
+                        # log.debug("Expired flows have been removed")
 
         # if len(self.sys_flow[self.con.dpid]) < 5:
         #    log.debug("test breakpoint")
@@ -355,7 +374,7 @@ class SH_LoadBalancing():
                 del self.live_servers[sIP]
 
                 # re-index the client hash keys since a server has been removed from the network
-                self.build_clientip_index_table()
+                # self.build_clientip_index_table()
 
                 log.debug("server %s has been removed from the system.", sIP.toStr())
                 log.debug("Its client flow entries also have been removed from the system.")
@@ -582,7 +601,7 @@ class SH_LoadBalancing():
 
             # you received an arp reply, update the liveserver time for the current server ip
             if p.opcode == arp.REPLY:
-                log.debug("capturing arp reply packet from %s to %s", p.protosrc, p.protodst)
+                # log.debug("capturing arp reply packet from %s to %s", p.protosrc, p.protodst)
 
                 # the reply is captured here and add server ip to self.live_servers and update server timestamp if server is not in live_servers object list.
                 self.add_server(p.protosrc, p.hwsrc, inport)
@@ -679,7 +698,7 @@ class SH_LoadBalancing():
 
                 msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
                                       # idle_timeout=flowMatch[0].idleTime*6*60,  delb
-                                      idle_timeout=sys_flow.idleTime * 6 * 60,
+                                      idle_timeout=sys_flow.idleTime,
                                       hard_timeout=of.OFP_FLOW_PERMANENT,
                                       priority=45535,
                                       data=event.ofp,
@@ -689,12 +708,14 @@ class SH_LoadBalancing():
                 # log.debug("test")
 
                 if sourceip in self.server_reply_metrics:
-                    self.server_reply_metrics[sourceip]['hits'] = self.client_request_metrics[sourceip]['hits'] + 1
+                    self.server_reply_metrics[sourceip]['hits'] = self.server_reply_metrics[sourceip]['hits'] + 1
                 else:
                     self.server_reply_metrics[sourceip] = {"hits": 1}
 
-                log.debug("stop")
-                # tcp packet request
+                log.debug("reply from server: %s", sourceip.toStr())
+
+                # log.debug("stop")
+            # tcp packet request
             # client is reaching out to server. install entry flow for the client to server communication
             # handles http request
             elif dstip == self.service_ip and len(self.live_servers) > 0:
@@ -768,9 +789,16 @@ class SH_LoadBalancing():
                 # match.dl_vlan=0x0000
                 # match.tp_dst=80
 
+                '''
+                msg = of.ofp_packet_out(data = event.ofp)
+                msg.actions.append(of.ofp_action_output(port = 6))
+                event.connection.send(msg)                        
+                return 
+                '''
+
                 msg = of.ofp_flow_mod(command=of.OFPFC_ADD,
                                       # idle_timeout=flowMatch[0][0].idleTime*6*60,
-                                      idle_timeout=sysflow.idleTime * 6 * 60,
+                                      idle_timeout=sysflow.idleTime,
                                       hard_timeout=of.OFP_FLOW_PERMANENT,
                                       priority=45535,
                                       # vlan_tci=0x0000,
@@ -780,12 +808,19 @@ class SH_LoadBalancing():
 
                 self.con.send(msg)
 
+                log.debug("request from client: %s", sourceip.toStr())
+
                 if sourceip in self.client_request_metrics:
                     self.client_request_metrics[sourceip]['hits'] = self.client_request_metrics[sourceip]['hits'] + 1
                 else:
                     self.client_request_metrics[sourceip] = {"hits": 1}
 
-                log.debug("stop")
+                self.cnt = self.cnt + 1
+
+                if self.cnt == 20 or self.cnt == 30 or self.cnt == 40:
+                    log.debug("stop")
+
+                    # log.debug("stop")
                 # log.debug("stop2")
         # else:
         #    log.debug("another type of traffic")
