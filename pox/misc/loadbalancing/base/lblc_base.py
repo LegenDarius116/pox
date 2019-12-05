@@ -18,7 +18,7 @@ class lblc_base(iplb_base):
         self.log.debug('server_load initial state: {}'.format(self.server_load))
 
     def _mutate_server_load(self, server, op):
-        """Increments/Decrements one of the live server's load by 1. A mutex is used to prevent race conditions.
+        """Increments/Decrements one of the live server's load by 1.
 
         :param server:  key that represents the server node
         :param op:      opcode string that either increments or decrements
